@@ -4,6 +4,11 @@ on:
   push:
     branches: ["main"]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,11 +27,6 @@ jobs:
       - name: Build web version
         run: npx expo export --platform web
 
-      - name: Fix base path for GitHub Pages
-        run: |
-          sed -i 's|"/_expo|"/habit-tracker-app/_expo|g' dist/index.html
-          sed -i 's|"/assets|"/habit-tracker-app/assets|g' dist/index.html
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -38,6 +38,9 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
+    permissions:
+      pages: write
+      id-token: write
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
