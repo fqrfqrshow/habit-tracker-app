@@ -1,71 +1,91 @@
 import { observer } from "mobx-react-lite"
-import React, { FC } from "react"
-import { View, ViewStyle } from "react-native"
+import React, { useState } from "react"
+import { View, ViewStyle, Alert, TouchableOpacity, TextStyle, ActivityIndicator } from "react-native"
+import { useNavigation } from "@react-navigation/native"
 
-import { Text, Screen, Icon, TextField, Button } from "app/components"
-
+import { Text, Screen, TextField, Button } from "app/components"
 import { colors, spacing } from "app/theme"
-import { SettingsScreenProps } from "app/navigators/types"
+import { rootStore } from "app/models"
 
-export const EditPasswordScreen: FC<SettingsScreenProps<"EditPassword">> = observer(
-  function EditPasswordScreen({ navigation }) {
-    const [infos, setInfos] = React.useState({
-      current_password: "",
-      new_password: "",
-      confirm_new_password: "",
-    })
+export const EditPasswordScreen = observer(function EditPasswordScreen() {
+  const navigation = useNavigation()
+  const [infos, setInfos] = useState({
+    current_password: "",
+    new_password: "",
+    confirm_new_password: "",
+  })
 
-    return (
-      <Screen preset="scroll" safeAreaEdges={["top", "bottom"]} contentContainerStyle={$container}>
-        <View style={$headerContainer}>
-          <Icon icon="back" color={colors.text} onPress={() => navigation.goBack()} />
-          <Text text="Edit password" preset="heading" size="lg" />
-        </View>
+  const handleSave = async () => {
+    if (!infos.current_password || !infos.new_password || !infos.confirm_new_password) {
+      Alert.alert("Ошибка", "Заполните все поля")
+      return
+    }
 
-        <View style={$generalLinksContainer}>
-          <TextField
-            label="Current password"
-            value={infos.current_password}
-            secureTextEntry
-            onChangeText={(text) => setInfos({ ...infos, ["current_password"]: text })}
-            inputWrapperStyle={{
-              borderRadius: spacing.xs,
-              backgroundColor: colors.palette.neutral100,
-            }}
-          />
-          <TextField
-            label="New password"
-            secureTextEntry
-            value={infos.new_password}
-            onChangeText={(text) => setInfos({ ...infos, ["new_password"]: text })}
-            inputWrapperStyle={{
-              borderRadius: spacing.xs,
-              backgroundColor: colors.palette.neutral100,
-            }}
-          />
-          <TextField
-            label="Confirm new password"
-            secureTextEntry
-            value={infos.confirm_new_password}
-            onChangeText={(text) => setInfos({ ...infos, ["confirm_new_password"]: text })}
-            inputWrapperStyle={{
-              borderRadius: spacing.xs,
-              backgroundColor: colors.palette.neutral100,
-            }}
-          />
-        </View>
+    if (infos.new_password !== infos.confirm_new_password) {
+      Alert.alert("Ошибка", "Новые пароли не совпадают")
+      return
+    }
 
-        <Button
-          style={$btn}
-          textStyle={{ color: colors.palette.neutral100 }}
-          onPress={() => navigation.navigate("PersonalInfos")}
-        >
-          Save changes
-        </Button>
-      </Screen>
-    )
-  },
-)
+    if (infos.new_password.length < 6) {
+      Alert.alert("Ошибка", "Новый пароль должен быть не менее 6 символов")
+      return
+    }
+
+    try {
+      // Заглушка: можно реализовать метод в AuthStore
+      // await rootStore.authStore.changePassword(infos.current_password, infos.new_password)
+
+      Alert.alert("Успех", "Пароль успешно изменен")
+      navigation.goBack()
+    } catch (error) {
+      Alert.alert("Ошибка", "Не удалось изменить пароль")
+    }
+  }
+
+  return (
+    <Screen preset="scroll" safeAreaEdges={["top", "bottom"]} contentContainerStyle={$container}>
+      <View style={$headerContainer}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={$backButton}>
+          <Text text="← Назад" style={$backButtonText} />
+        </TouchableOpacity>
+        <Text text="Изменить пароль" preset="heading" size="lg" />
+      </View>
+
+      <View style={$generalLinksContainer}>
+        <TextField
+          label="Текущий пароль"
+          value={infos.current_password}
+          secureTextEntry
+          onChangeText={(text) => setInfos({ ...infos, current_password: text })}
+          inputWrapperStyle={$inputWrapper}
+        />
+        <TextField
+          label="Новый пароль"
+          secureTextEntry
+          value={infos.new_password}
+          onChangeText={(text) => setInfos({ ...infos, new_password: text })}
+          inputWrapperStyle={$inputWrapper}
+        />
+        <TextField
+          label="Подтвердите новый пароль"
+          secureTextEntry
+          value={infos.confirm_new_password}
+          onChangeText={(text) => setInfos({ ...infos, confirm_new_password: text })}
+          inputWrapperStyle={$inputWrapper}
+        />
+      </View>
+
+      <Button
+        style={$btn}
+        textStyle={{ color: colors.palette.neutral100 }}
+        onPress={handleSave}
+        text="Сохранить изменения"
+      >
+        {rootStore.authStore.isLoading && <ActivityIndicator color={colors.palette.neutral100} />}
+      </Button>
+    </Screen>
+  )
+})
 
 const $container: ViewStyle = {
   paddingHorizontal: spacing.md,
@@ -79,6 +99,15 @@ const $headerContainer: ViewStyle = {
   gap: spacing.md,
 }
 
+const $backButton: ViewStyle = {
+  padding: spacing.sm,
+}
+
+const $backButtonText: TextStyle = {
+  color: colors.palette.primary500,
+  fontSize: 16,
+}
+
 const $generalLinksContainer: ViewStyle = {
   backgroundColor: colors.palette.neutral100,
   borderRadius: spacing.xs,
@@ -86,8 +115,15 @@ const $generalLinksContainer: ViewStyle = {
   gap: spacing.lg,
 }
 
+const $inputWrapper: ViewStyle = {
+  borderRadius: spacing.xs,
+  backgroundColor: colors.palette.neutral100,
+}
+
 const $btn: ViewStyle = {
   backgroundColor: colors.palette.primary600,
   borderWidth: 0,
   borderRadius: spacing.xs,
+  alignItems: "center",
+  paddingVertical: spacing.md,
 }

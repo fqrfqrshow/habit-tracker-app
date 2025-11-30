@@ -2,182 +2,218 @@ import { observer } from "mobx-react-lite"
 import React, { FC } from "react"
 import { TextStyle, View, ViewStyle, TouchableOpacity } from "react-native"
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons"
-import { BarChart, barDataItem, PieChart, pieDataItem } from "react-native-gifted-charts"
-
 import { Text, Screen } from "app/components"
 import layout from "app/utils/layout"
 
 import { colors, spacing } from "../theme"
 import { StatisticsScreenProps } from "app/navigators/types"
+import { rootStore } from "app/models"
+import { HabitType } from "app/models/HabitStore"
 
 const filters = [
-  { title: "Day", abbr: "D", id: 1 },
-  { title: "Week", abbr: "W", id: 2 },
-  { title: "Month", abbr: "M", id: 3 },
-  { title: "Three Months", abbr: "3M", id: 4 },
-  { title: "Six Months", abbr: "6M", id: 5 },
-  { title: "Year", abbr: "Y", id: 6 },
+  { title: "День", abbr: "Д", id: 1 },
+  { title: "Неделя", abbr: "Н", id: 2 },
+  { title: "Месяц", abbr: "М", id: 3 },
+  { title: "3 месяца", abbr: "3М", id: 4 },
+  { title: "6 месяцев", abbr: "6М", id: 5 },
+  { title: "Год", abbr: "Г", id: 6 },
 ]
 
-export const StatisticsScreen: FC<StatisticsScreenProps> = observer(function StatisticsScreen() {
-  const [filter, setFilter] = React.useState("D")
-
-  const data: barDataItem[] = [
-    {
-      value: 200,
-      frontColor: colors.palette.primary600,
-      gradientColor: colors.palette.primary100,
-      label: "S",
-    },
-    {
-      value: 450,
-      frontColor: colors.palette.primary600,
-      gradientColor: colors.palette.primary100,
-      label: "M",
-    },
-    {
-      value: 600,
-      frontColor: colors.palette.primary600,
-      gradientColor: colors.palette.primary100,
-      label: "T",
-    },
-    {
-      value: 990,
-      frontColor: colors.palette.primary600,
-      gradientColor: colors.palette.primary100,
-      label: "W",
-    },
-    {
-      value: 820,
-      frontColor: colors.palette.primary600,
-      gradientColor: colors.palette.primary100,
-      label: "T",
-    },
-    {
-      value: 480,
-      frontColor: colors.palette.primary600,
-      gradientColor: colors.palette.primary100,
-      label: "F",
-    },
-    {
-      value: 1000,
-      frontColor: colors.palette.primary600,
-      // gradientColor: colors.palette.primary100,
-      label: "S",
-    },
-  ]
-
-  const pieData: pieDataItem[] = [
-    {
-      value: 80,
-      color: colors.palette.secondary500,
-      focused: true,
-    },
-    { value: 20, color: colors.palette.accent500 },
-  ]
-
-  const barData = [
-    {
-      value: 40,
-      label: "Jan",
-      spacing: 2,
-      labelWidth: 30,
-      labelTextStyle: { color: "gray" },
-      frontColor: "#177AD5",
-    },
-    { value: 20, frontColor: "#ED6665" },
-    {
-      value: 50,
-      label: "Feb",
-      spacing: 2,
-      labelWidth: 30,
-      labelTextStyle: { color: "gray" },
-      frontColor: "#177AD5",
-    },
-    { value: 40, frontColor: "#ED6665" },
-    {
-      value: 75,
-      label: "Mar",
-      spacing: 2,
-      labelWidth: 30,
-      labelTextStyle: { color: "gray" },
-      frontColor: "#177AD5",
-    },
-    { value: 25, frontColor: "#ED6665" },
-    {
-      value: 30,
-      label: "Apr",
-      spacing: 2,
-      labelWidth: 30,
-      labelTextStyle: { color: "gray" },
-      frontColor: "#177AD5",
-    },
-    { value: 20, frontColor: "#ED6665" },
-    {
-      value: 60,
-      label: "May",
-      spacing: 2,
-      labelWidth: 30,
-      labelTextStyle: { color: "gray" },
-      frontColor: "#177AD5",
-    },
-    { value: 40, frontColor: "#ED6665" },
-    {
-      value: 65,
-      label: "Jun",
-      spacing: 2,
-      labelWidth: 30,
-      labelTextStyle: { color: "gray" },
-      frontColor: "#177AD5",
-    },
-    { value: 30, frontColor: "#ED6665" },
-  ]
-
-  const renderTitle = () => {
-    return (
-      <View style={{ gap: spacing.lg, marginVertical: spacing.xl }}>
-        <Text text="Habits Comparisons" preset="formLabel" />
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-evenly",
-          }}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-            <View
-              style={{
-                height: 12,
-                width: 12,
-                borderRadius: 6,
-                backgroundColor: "#177AD5",
-              }}
+// Заглушки для графиков вместо react-native-gifted-charts
+const BarChart = ({ data, width, height, ...props }: any) => {
+  const maxValue = Math.max(...data.map((item: any) => item.value), 1)
+  
+  return (
+    <View style={[$barChartContainer, { width, height }]}>
+      <View style={$barsContainer}>
+        {data.map((item: any, index: number) => (
+          <View key={index} style={$barColumn}>
+            <View 
+              style={[
+                $bar, 
+                { 
+                  height: `${(item.value / maxValue) * 80}%`,
+                  backgroundColor: item.frontColor || colors.palette.primary600 
+                }
+              ]} 
             />
-            <Text
-              style={{
-                color: colors.palette.neutral600,
-              }}
-            >
-              Current month
-            </Text>
+            <Text text={item.label} size="xs" style={$barLabel} />
           </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+        ))}
+      </View>
+    </View>
+  )
+}
+
+const PieChart = ({ data, radius = 70, innerRadius = 50, centerLabelComponent, ...props }: any) => {
+  const total = data.reduce((sum: number, item: any) => sum + item.value, 0)
+  let currentAngle = 0
+  
+  return (
+    <View style={[$pieChartContainer, { width: radius * 2, height: radius * 2 }]}>
+      <View style={[$pieChart, { width: radius * 2, height: radius * 2 }]}>
+        {data.map((item: any, index: number) => {
+          const percentage = (item.value / total) * 100
+          const angle = (percentage / 100) * 360
+          const segmentStyle = {
+            backgroundColor: item.color,
+            transform: [{ rotate: `${currentAngle}deg` }],
+          }
+          currentAngle += angle
+          
+          return (
             <View
-              style={{
-                height: 12,
-                width: 12,
-                borderRadius: 6,
-                backgroundColor: "#ED6665",
-              }}
+              key={index}
+              style={[
+                $pieSegment,
+                segmentStyle,
+                { width: radius * 2, height: radius * 2 }
+              ]}
             />
-            <Text
-              style={{
-                color: colors.palette.neutral600,
-              }}
-            >
-              Last month
-            </Text>
-          </View>
+          )
+        })}
+        <View style={[$pieCenter, { width: innerRadius * 2, height: innerRadius * 2 }]}>
+          {centerLabelComponent && centerLabelComponent()}
         </View>
+      </View>
+    </View>
+  )
+}
+
+export const StatisticsScreen: FC<StatisticsScreenProps> = observer(function StatisticsScreen() {
+  const [filter, setFilter] = React.useState("Д")
+  
+  const { habitStore } = rootStore
+  const { habits } = habitStore
+
+  // Исправляем использование свойств HabitType
+  const completedHabits = habits.filter((habit: HabitType) => {
+    // Используем доступные свойства из HabitType
+    const hasCompletions = habit.completionsByDate && Object.keys(habit.completionsByDate).length > 0
+    return hasCompletions || (habit.streak && habit.streak > 0)
+  }).length
+
+  const totalHabits = habits.length
+  const completionRate = totalHabits > 0 ? Math.round((completedHabits / totalHabits) * 100) : 0
+
+  // Прогресс по дням недели
+  const weeklyProgress = [
+    { 
+      value: habits.filter((h: HabitType) => 
+        Array.isArray(h.frequency) && h.frequency.includes("Понедельник")
+      ).length * 10, 
+      frontColor: colors.palette.primary600, 
+      label: "П" 
+    },
+    { 
+      value: habits.filter((h: HabitType) => 
+        Array.isArray(h.frequency) && h.frequency.includes("Вторник")
+      ).length * 10, 
+      frontColor: colors.palette.primary600, 
+      label: "В" 
+    },
+    { 
+      value: habits.filter((h: HabitType) => 
+        Array.isArray(h.frequency) && h.frequency.includes("Среда")
+      ).length * 10, 
+      frontColor: colors.palette.primary600, 
+      label: "С" 
+    },
+    { 
+      value: habits.filter((h: HabitType) => 
+        Array.isArray(h.frequency) && h.frequency.includes("Четверг")
+      ).length * 10, 
+      frontColor: colors.palette.primary600, 
+      label: "Ч" 
+    },
+    { 
+      value: habits.filter((h: HabitType) => 
+        Array.isArray(h.frequency) && h.frequency.includes("Пятница")
+      ).length * 10, 
+      frontColor: colors.palette.primary600, 
+      label: "П" 
+    },
+    { 
+      value: habits.filter((h: HabitType) => 
+        Array.isArray(h.frequency) && h.frequency.includes("Суббота")
+      ).length * 10, 
+      frontColor: colors.palette.primary600, 
+      label: "С" 
+    },
+    { 
+      value: habits.filter((h: HabitType) => 
+        Array.isArray(h.frequency) && h.frequency.includes("Воскресенье")
+      ).length * 10, 
+      frontColor: colors.palette.primary600, 
+      label: "В" 
+    },
+  ]
+
+  // Прогресс по привычкам
+  const habitProgressData = habits.map((habit: HabitType) => {
+    const streak = habit.streak || 0
+    const hasCompletions = habit.completionsByDate && Object.keys(habit.completionsByDate).length > 0
+    const isCompleted = hasCompletions || streak > 0
+    
+    return {
+      // Используем name вместо title, так как в HabitType есть name
+      name: habit.name || "Без названия",
+      emoji: habit.emoji || "📊",
+      isCompleted: isCompleted,
+      streak: streak,
+      completionPercentage: streak > 0 ? Math.min(streak * 10, 100) : 0
+    }
+  })
+
+  // Данные для круговой диаграммы
+  const pieData = [
+    {
+      value: completedHabits,
+      color: colors.palette.secondary500,
+      text: `${completedHabits} выполнено`
+    },
+    { 
+      value: totalHabits - completedHabits, 
+      color: colors.palette.accent500,
+      text: `${totalHabits - completedHabits} не выполнено`
+    },
+  ]
+
+  const renderHabitProgress = () => {
+    return (
+      <View style={$habitsProgressContainer}>
+        <Text text="Прогресс привычек" preset="formLabel" style={{ marginBottom: spacing.md }} />
+        {habitProgressData.map((habit: any, index: number) => (
+          <View key={index} style={$habitProgressItem}>
+            <View style={$habitInfo}>
+              <Text text={habit.emoji} style={{ marginRight: spacing.sm }} />
+              <View style={$habitText}>
+                <Text text={habit.name} size="sm" />
+                <Text 
+                  text={`Серия: ${habit.streak} дней`} 
+                  size="xs" 
+                  style={{ color: colors.textDim }} 
+                />
+              </View>
+            </View>
+            <View style={$progressBarContainer}>
+              <View 
+                style={[
+                  $progressBar, 
+                  { 
+                    width: `${habit.completionPercentage}%`,
+                    backgroundColor: habit.isCompleted ? colors.palette.secondary500 : colors.palette.accent500
+                  }
+                ]} 
+              />
+              <Text 
+                text={`${habit.completionPercentage}%`} 
+                size="xs" 
+                style={$progressText} 
+              />
+            </View>
+          </View>
+        ))}
       </View>
     )
   }
@@ -191,11 +227,11 @@ export const StatisticsScreen: FC<StatisticsScreenProps> = observer(function Sta
       <View style={$legendContainer}>
         <View style={$legend}>
           {renderDot(colors.palette.secondary500)}
-          <Text style={{}}>Excellent: 80%</Text>
+          <Text style={{ fontSize: 12 }}>Выполнено: {completedHabits}</Text>
         </View>
         <View style={$legend}>
           {renderDot(colors.palette.accent500)}
-          <Text style={{}}>Okay: 20%</Text>
+          <Text style={{ fontSize: 12 }}>Не выполнено: {totalHabits - completedHabits}</Text>
         </View>
       </View>
     )
@@ -204,115 +240,80 @@ export const StatisticsScreen: FC<StatisticsScreenProps> = observer(function Sta
   return (
     <Screen preset="scroll" safeAreaEdges={["top", "bottom"]} contentContainerStyle={$container}>
       <View style={$topContainer}>
-        <Text text="Stats" preset="heading" />
-        <MaterialCommunityIcons name="export-variant" size={24} />
+        <Text text="Прогресс" preset="heading" />
+        <MaterialCommunityIcons name="export-variant" size={24} color={colors.text} />
       </View>
+
+      {/* Фильтры */}
       <View style={$filtersContainer}>
         {filters.map((f, idx) => (
-          <>
+          <React.Fragment key={f.id}>
             <TouchableOpacity
-              key={`${f.id}-${f.abbr}`}
               style={filter === f.abbr ? $activeFilter : {}}
               onPress={() => setFilter(f.abbr)}
             >
-              <Text text={f.abbr} preset="bold" style={filter === f.abbr ? $activeText : {}} />
+              <Text 
+                text={f.abbr} 
+                preset="bold" 
+                style={filter === f.abbr ? $activeText : {}} 
+              />
             </TouchableOpacity>
             {filters.length > idx + 1 && (
-              <Text key={`${f.id}-${f.abbr}-${idx}`} text="•" preset="bold" />
+              <Text text="•" preset="bold" style={{ color: colors.textDim }} />
             )}
-          </>
+          </React.Fragment>
         ))}
       </View>
-      <View>
-        <View style={$barChartOverviewContainer}>
-          <Text text="Total Activities" preset="formLabel" />
-          <Text text="87%" preset="heading" />
-        </View>
-        <View style={$barChartContainer}>
-          <BarChart
-            data={data}
-            barWidth={20}
-            width={layout.window.width * 0.77}
-            height={layout.window.height * 0.3}
-            initialSpacing={spacing.xs}
-            spacing={spacing.lg}
-            barBorderRadius={spacing.sm}
-            yAxisThickness={0}
-            noOfSections={5}
-            xAxisType={"dashed"}
-            xAxisColor={colors.palette.neutral400}
-            yAxisTextStyle={{ color: colors.textDim }}
-            stepValue={100}
-            maxValue={1000}
-            yAxisLabelTexts={["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]}
-            xAxisLabelTextStyle={$xAxisLabelText}
-            yAxisLabelSuffix="%"
-            showLine
-            // hideYAxisText
-            // hideRules
-            lineConfig={{
-              color: colors.palette.accent500,
-              thickness: 3,
-              curved: true,
-              hideDataPoints: true,
-              shiftY: 20,
-            }}
-          />
-        </View>
+
+      {/* Общая статистика */}
+      <View style={$overviewContainer}>
+        <Text text="Общий прогресс" preset="formLabel" />
+        <Text text={`${completionRate}%`} preset="heading" size="xxl" />
+        <Text 
+          text={`${completedHabits} из ${totalHabits} привычек выполнено`} 
+          size="sm" 
+          style={{ color: colors.textDim }} 
+        />
       </View>
 
-      <View style={{ gap: spacing.xl, marginTop: spacing.md }}>
-        <Text text="Daily Habits Overview" preset="formLabel" />
-        <View style={$pieChartContainer}>
+      {/* График недельного прогресса */}
+      <View style={$chartSection}>
+        <Text text="Прогресс по дням недели" preset="formLabel" />
+        <BarChart
+          data={weeklyProgress}
+          width={layout.window.width * 0.77}
+          height={layout.window.height * 0.2}
+        />
+      </View>
+
+      {/* Круговая диаграмма */}
+      <View style={$chartSection}>
+        <Text text="Выполнение привычек" preset="formLabel" />
+        <View style={$pieChartWrapper}>
           <PieChart
             data={pieData}
-            donut
-            showGradient
-            sectionAutoFocus
-            radius={90}
-            innerRadius={60}
-            innerCircleColor={colors.palette.secondary500}
+            radius={70}
+            innerRadius={50}
             centerLabelComponent={() => {
               return (
                 <View style={$pieChartLabelContainer}>
-                  <Text
-                    text="80%"
-                    preset="subheading"
-                    style={{ color: colors.palette.neutral100 }}
-                  />
-                  <Text
-                    text="Excellent"
-                    preset="formLabel"
-                    style={{ color: colors.palette.neutral100 }}
-                  />
+                  <Text text={`${completionRate}%`} preset="subheading" />
+                  <Text text="Выполнено" preset="formLabel" size="xs" />
                 </View>
               )
             }}
           />
-          <View>{renderLegendComponent()}</View>
+          {renderLegendComponent()}
         </View>
       </View>
 
-      <View style={{}}>
-        {renderTitle()}
-        <BarChart
-          data={barData}
-          barWidth={8}
-          spacing={24}
-          roundedTop
-          roundedBottom
-          hideRules
-          xAxisThickness={0}
-          yAxisThickness={0}
-          yAxisTextStyle={{ color: colors.textDim }}
-          noOfSections={3}
-          maxValue={75}
-        />
-      </View>
+      {/* Детальный прогресс по привычкам */}
+      {renderHabitProgress()}
     </Screen>
   )
 })
 
+// Стили
 const $container: ViewStyle = {
   paddingHorizontal: spacing.lg,
   gap: spacing.xl,
@@ -325,17 +326,16 @@ const $topContainer: ViewStyle = {
   justifyContent: "space-between",
 }
 
-const $xAxisLabelText: TextStyle = {
-  color: colors.textDim,
-  textAlign: "center",
+const $overviewContainer: ViewStyle = {
+  alignItems: "center",
+  padding: spacing.lg,
+  backgroundColor: colors.palette.neutral100,
+  borderRadius: spacing.md,
+  gap: spacing.xs,
 }
 
-const $barChartContainer: ViewStyle = {
-  overflow: "hidden",
-}
-
-const $barChartOverviewContainer: ViewStyle = {
-  marginBottom: spacing.xs,
+const $chartSection: ViewStyle = {
+  gap: spacing.md,
 }
 
 const $filtersContainer: ViewStyle = {
@@ -366,29 +366,138 @@ const $dotStyle: ViewStyle = {
   height: 10,
   width: 10,
   borderRadius: 5,
-  marginRight: 10,
+  marginRight: spacing.xs,
 }
 
 const $legendContainer: ViewStyle = {
   flexDirection: "row",
   justifyContent: "center",
-  marginBottom: 10,
+  gap: spacing.lg,
+  marginTop: spacing.md,
 }
 
 const $legend: ViewStyle = {
   flexDirection: "row",
   alignItems: "center",
-  justifyContent: "center",
-  width: "50%",
 }
 
-const $pieChartContainer: ViewStyle = {
+const $pieChartWrapper: ViewStyle = {
   alignItems: "center",
   width: "100%",
   gap: spacing.md,
+  padding: spacing.md,
+  backgroundColor: colors.palette.neutral100,
+  borderRadius: spacing.md,
+}
+
+const $pieChartContainer: ViewStyle = {
+  position: 'relative',
+  alignItems: 'center',
+  justifyContent: 'center',
+}
+
+const $pieChart: ViewStyle = {
+  position: 'relative',
+  borderRadius: 999,
+  overflow: 'hidden',
+}
+
+const $pieSegment: ViewStyle = {
+  position: 'absolute',
+  borderRadius: 999,
+  transformOrigin: 'center',
+}
+
+const $pieCenter: ViewStyle = {
+  position: 'absolute',
+  borderRadius: 999,
+  backgroundColor: colors.palette.neutral100,
+  alignItems: 'center',
+  justifyContent: 'center',
+  top: '50%',
+  left: '50%',
+  transform: [{ translateX: -50 }, { translateY: -50 }],
 }
 
 const $pieChartLabelContainer: ViewStyle = {
   justifyContent: "center",
   alignItems: "center",
+}
+
+const $barChartContainer: ViewStyle = {
+  backgroundColor: colors.palette.neutral100,
+  borderRadius: spacing.md,
+  padding: spacing.md,
+  alignItems: 'center',
+  justifyContent: 'center',
+}
+
+const $barsContainer: ViewStyle = {
+  flexDirection: 'row',
+  alignItems: 'flex-end',
+  height: '100%',
+  gap: spacing.lg,
+}
+
+const $barColumn: ViewStyle = {
+  alignItems: 'center',
+  height: '100%',
+  justifyContent: 'flex-end',
+}
+
+const $bar: ViewStyle = {
+  width: 20,
+  borderRadius: spacing.sm,
+  minHeight: 4,
+}
+
+const $barLabel: TextStyle = {
+  marginTop: spacing.xs,
+  color: colors.textDim,
+}
+
+const $habitsProgressContainer: ViewStyle = {
+  gap: spacing.md,
+  padding: spacing.md,
+  backgroundColor: colors.palette.neutral100,
+  borderRadius: spacing.md,
+}
+
+const $habitProgressItem: ViewStyle = {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  paddingVertical: spacing.xs,
+}
+
+const $habitInfo: ViewStyle = {
+  flexDirection: "row",
+  alignItems: "center",
+  flex: 1,
+}
+
+const $habitText: ViewStyle = {
+  flex: 1,
+}
+
+const $progressBarContainer: ViewStyle = {
+  width: 80,
+  height: 20,
+  backgroundColor: colors.palette.neutral300,
+  borderRadius: 10,
+  overflow: 'hidden',
+  position: 'relative',
+}
+
+const $progressBar: ViewStyle = {
+  height: '100%',
+  borderRadius: 10,
+}
+
+const $progressText: TextStyle = {
+  position: 'absolute',
+  right: 5,
+  top: 2,
+  color: colors.text,
+  fontSize: 10,
 }

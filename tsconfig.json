@@ -1,11 +1,12 @@
 {
+  "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "jsx": "react-native",
-    "module": "es2015",
-    "moduleResolution": "node",
+    "module": "esnext",
+    "moduleResolution": "bundler",        // совместимо с Expo SDK 54
     "strict": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
@@ -14,23 +15,28 @@
     "sourceMap": true,
     "target": "esnext",
     "lib": ["esnext", "dom"],
-    "skipLibCheck": true,
+    "skipLibCheck": true,                 // игнорируем ошибки в node_modules
     "resolveJsonModule": true,
-    "baseUrl": ".",
     "paths": {
       "app/*": ["./app/*"],
       "assets/*": ["./assets/*"]
     }
   },
-  "extends": "expo/tsconfig.base",
   "ts-node": {
     "compilerOptions": {
-      // compilerOptions specified here will override those declared above,
-      // but *only* in ts-node.  Useful if you want ts-node and tsc to use
-      // different options with a single tsconfig.json.
       "module": "commonjs"
     }
   },
-  "include": ["index.js", "App.tsx", "app", "types", "plugins", "app.config.ts"],
-  "exclude": ["node_modules", "test/**/*"]
+  "include": [
+    "index.js",
+    "App.tsx",
+    "app",
+    "types",
+    "plugins",
+    "app.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "test/**/*"
+  ]
 }

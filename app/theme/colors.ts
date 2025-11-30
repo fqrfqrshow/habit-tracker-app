@@ -1,90 +1,52 @@
-// TODO: write documentation for colors and palette in own markdown file and add links from here
-
 const palette = {
   neutral100: "#FFFFFF",
-  neutral200: "#F4F2F1",
-  neutral300: "#D7CEC9",
-  neutral400: "#B6ACA6",
-  neutral500: "#978F8A",
-  neutral600: "#564E4A",
-  neutral700: "#3C3836",
-  neutral800: "#191015",
-  neutral900: "#000000",
+  neutral200: "#F0F8FF",  // Alice Blue
+  neutral300: "#E6F3FF",  // Очень светлый голубой
+  neutral400: "#B6D0E2",  // Светлый голубой
+  neutral500: "#87CEEB",  // Sky Blue
+  neutral600: "#4682B4",  // Steel Blue
+  neutral700: "#1E90FF",  // Dodger Blue
+  neutral800: "#000080",  // Navy
+  neutral900: "#00008B",  // Dark Blue
 
-  primary100: "#F4E0D9",
-  primary200: "#E8C1B4",
-  primary300: "#DDA28E",
-  primary400: "#D28468",
-  primary500: "#C76542",
-  primary600: "#A54F31",
+  primary100: "#E6F3FF",  // Очень светлый голубой
+  primary200: "#B3D9FF",  // Светлый голубой
+  primary300: "#80BFFF",  // Голубой
+  primary400: "#4DA6FF",  // Яркий голубой
+  primary500: "#1A8CFF",  // Основной синий
+  primary600: "#0073E6",  // Темный синий
 
-  secondary100: "#DCDDE9",
-  secondary200: "#BCC0D6",
-  secondary300: "#9196B9",
-  secondary400: "#626894",
-  secondary500: "#41476E",
+  secondary100: "#F0F8FF",  // Alice Blue
+  secondary200: "#D4EFFF",  // Светлый голубой
+  secondary300: "#A7D8FF",  // Голубой
+  secondary400: "#7AB8FF",  // Средний голубой
+  secondary500: "#4D94FF",  // Второстепенный синий
 
-  accent100: "#FFEED4",
-  accent200: "#FFE1B2",
-  accent300: "#FDD495",
-  accent400: "#FBC878",
-  accent500: "#FFBB50",
+  accent100: "#FFF0F5",  
+  accent200: "#FFD1DC",  
+  accent300: "#FFA8BA",  
+  accent400: "#ea84a8ff",  
+  accent500: "#ef99b3ff",  // Яркий розовый
 
-  angry100: "#F2D6CD",
-  angry500: "#C03403",
+  angry100: "#FFE6E6",
+  angry500: "#FF3333",
 
   success: "#56C568",
 
-  overlay20: "rgba(25, 16, 21, 0.2)",
-  overlay50: "rgba(25, 16, 21, 0.5)",
+  overlay20: "rgba(0, 56, 112, 0.2)",
+  overlay50: "rgba(0, 56, 112, 0.5)",
 } as const
 
 export const colors = {
-  /**
-   * The palette is available to use, but prefer using the name.
-   * This is only included for rare, one-off cases. Try to use
-   * semantic names as much as possible.
-   */
   palette,
-  /**
-   * A helper for making something see-thru.
-   */
   transparent: "rgba(0, 0, 0, 0)",
-  /**
-   * The default text color in many components.
-   */
-  text: palette.neutral800,
-  /**
-   * Secondary text information.
-   */
-  textDim: palette.neutral600,
-  /**
-   * The default color of the screen background.
-   */
-  background: palette.neutral200,
-  /**
-   * The default border color.
-   */
-  border: palette.neutral400,
-  /**
-   * The main tinting color.
-   */
-  tint: palette.primary500,
-  /**
-   * A subtle color used for lines.
-   */
-  separator: palette.neutral300,
-  /**
-   * Error messages.
-   */
-  error: palette.angry500,
-  /**
-   * Error Background.
-   *
-   */
+  text: palette.neutral800,        // Темно-синий текст
+  textDim: palette.neutral600,     // Steel Blue
+  background: palette.neutral200,  // Alice Blue фон
+  border: palette.neutral400,      // Светлый голубой границы
+  tint: palette.primary500,        // Основной синий
+  separator: palette.neutral300,   // Очень светлый голубой разделители
+  error: palette.angry500,         // Красный для ошибок
   errorBackground: palette.angry100,
-  /**
-   * Success messages
-   */
   success: palette.success,
 }

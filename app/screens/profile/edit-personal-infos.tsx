@@ -1,147 +1,247 @@
+import React, { useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
-import React, { FC } from "react"
-import { View, ViewStyle, TouchableOpacity } from "react-native"
-
-import { Text, Screen, Icon, Toggle, IconTypes, TextField, Button } from "app/components"
-import layout from "app/utils/layout"
-
-import { Link } from "app/screens/settings"
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  ViewStyle,
+  TextStyle,
+  ActivityIndicator,
+  Alert,
+} from "react-native"
+import { Screen, Text } from "app/components"
 import { colors, spacing } from "app/theme"
-import { SettingsScreenProps } from "app/navigators/types"
+import { rootStore } from "app/models"
+import { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import { RootStackParamList } from "app/navigators/AppNavigator"
+import { Ionicons } from "@expo/vector-icons"
 
-export const EditPersonalInfosScreen: FC<SettingsScreenProps<"EditPersonalInfos">> = observer(
-  function EditPersonalInfosScreen({ navigation }) {
-    const [infos, setInfos] = React.useState({
-      fullName: "El Hadji Malick Seck",
-      email: "elhadjimalick@gmail.com",
-      bio: "Full Stack Dev",
-      twitter: "@takanome_dev",
-      linkedin: "@takanome_dev",
-      instagram: "@takanome_dev",
-      facebook: "@takanome_dev",
-    })
+type Props = {
+  navigation: NativeStackNavigationProp<RootStackParamList, "EditPersonalInfos">
+}
 
-    return (
-      <Screen preset="scroll" safeAreaEdges={["top", "bottom"]} contentContainerStyle={$container}>
-        <View style={$headerContainer}>
-          <Icon icon="back" color={colors.text} onPress={() => navigation.goBack()} />
-          <Text text="Edit personal infos" preset="heading" size="lg" />
-        </View>
+export const EditPersonalInfosScreen: React.FC<Props> = observer(({ navigation }) => {
+  const { authStore } = rootStore
 
-        <View style={$generalContainer}>
-          <Text text="General" preset="formLabel" />
-          <View style={$generalLinksContainer}>
-            <TextField
-              label="FullName"
-              value={infos.fullName}
-              onChangeText={(text) => setInfos({ ...infos, ["fullName"]: text })}
-              inputWrapperStyle={{
-                borderRadius: spacing.xs,
-                backgroundColor: colors.palette.neutral100,
-              }}
-            />
-            <TextField
-              label="Email"
-              keyboardType="email-address"
-              value={infos.email}
-              onChangeText={(text) => setInfos({ ...infos, ["email"]: text })}
-              inputWrapperStyle={{
-                borderRadius: spacing.xs,
-                backgroundColor: colors.palette.neutral100,
-              }}
-            />
-            <TextField
-              label="Bio"
-              value={infos.bio}
-              onChangeText={(text) => setInfos({ ...infos, ["bio"]: text })}
-              multiline
-              inputWrapperStyle={{
-                borderRadius: spacing.xs,
-                backgroundColor: colors.palette.neutral100,
-              }}
-            />
-          </View>
-        </View>
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [bio, setBio] = useState("")
+  const [isSaving, setIsSaving] = useState(false)
 
-        <View style={$generalContainer}>
-          <Text text="Social Links" preset="formLabel" />
-          <View style={$generalLinksContainer}>
-            <TextField
-              label="Twitter/X"
-              value={infos.twitter}
-              onChangeText={(text) => setInfos({ ...infos, ["twitter"]: text })}
-              inputWrapperStyle={{
-                borderRadius: spacing.xs,
-                backgroundColor: colors.palette.neutral100,
-              }}
-            />
-            <TextField
-              label="Linkedin"
-              value={infos.linkedin}
-              onChangeText={(text) => setInfos({ ...infos, ["linkedin"]: text })}
-              inputWrapperStyle={{
-                borderRadius: spacing.xs,
-                backgroundColor: colors.palette.neutral100,
-              }}
-            />
-            <TextField
-              label="Facebook"
-              value={infos.facebook}
-              onChangeText={(text) => setInfos({ ...infos, ["facebook"]: text })}
-              inputWrapperStyle={{
-                borderRadius: spacing.xs,
-                backgroundColor: colors.palette.neutral100,
-              }}
-            />
-            <TextField
-              label="Instagram"
-              value={infos.instagram}
-              onChangeText={(text) => setInfos({ ...infos, ["instagram"]: text })}
-              inputWrapperStyle={{
-                borderRadius: spacing.xs,
-                backgroundColor: colors.palette.neutral100,
-              }}
-            />
-          </View>
-        </View>
-
-        <Button
-          style={$btn}
-          textStyle={{ color: colors.palette.neutral100 }}
-          onPress={() => navigation.navigate("PersonalInfos")}
+  // Устанавливаем опции заголовка с кнопкой назад
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity 
+          style={$backButton}
+          onPress={() => navigation.goBack()}
         >
-          Save changes
-        </Button>
+          <Ionicons name="arrow-back" size={24} color={colors.palette.primary500} />
+        </TouchableOpacity>
+      ),
+      headerTitle: "Редактирование профиля",
+    })
+  }, [navigation])
+
+  useEffect(() => {
+    if (!authStore?.user) return
+    setName(authStore.user.name ?? "")
+    setEmail(authStore.user.email ?? "")
+    setBio(authStore.user.bio ?? "")
+  }, [authStore?.user])
+
+  const handleSave = async () => {
+    if (!authStore?.user) {
+      Alert.alert("Ошибка", "Пользователь не найден")
+      return
+    }
+
+    try {
+      setIsSaving(true)
+      console.log("Сохранение данных:", { name, email, bio })
+
+      // Используем метод updateUserProfile
+      await authStore.updateUserProfile({
+        name: name.trim(),
+        email: email.trim(),
+        bio: bio.trim(),
+      })
+
+      console.log("Профиль успешно обновлен")
+      
+      Alert.alert("Готово", "Профиль обновлён", [
+        {
+          text: "OK",
+          onPress: () => {
+            navigation.navigate("PersonalInfos")
+          }
+        }
+      ])
+
+    } catch (error: any) {
+      console.error("Ошибка при сохранении:", error)
+      
+      const errorMessage = error?.message || "Не удалось сохранить изменения"
+      Alert.alert("Ошибка", errorMessage)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Проверяем, доступен ли authStore и пользователь
+  if (!authStore || !authStore.user) {
+    return (
+      <Screen preset="fixed" contentContainerStyle={$container}>
+        <Text preset="heading" text="Ошибка" />
+        <Text text="Данные пользователя не загружены" style={$hint} />
+        <TouchableOpacity style={$button} onPress={() => navigation.goBack()}>
+          <Text text="Вернуться назад" style={$buttonText} />
+        </TouchableOpacity>
       </Screen>
     )
-  },
-)
+  }
 
-const $container: ViewStyle = {
+  const hasChanges = 
+    name !== (authStore.user.name ?? "") ||
+    email !== (authStore.user.email ?? "") ||
+    bio !== (authStore.user.bio ?? "")
+
+  return (
+    <Screen 
+      preset="scroll" 
+      safeAreaEdges={["top", "bottom"]} 
+      contentContainerStyle={$container}
+    >
+      <Text text="Обнови информацию о себе" style={$hint} />
+
+      <View style={$form}>
+        <View style={$field}>
+          <Text text="Имя" preset="formLabel" />
+          <TextInput
+            value={name}
+            onChangeText={setName}
+            placeholder="Ваше имя"
+            placeholderTextColor={colors.textDim}
+            style={$input}
+          />
+        </View>
+
+        <View style={$field}>
+          <Text text="Email" preset="formLabel" />
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            placeholder="you@example.com"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            placeholderTextColor={colors.textDim}
+            style={$input}
+          />
+        </View>
+
+        <View style={$field}>
+          <Text text="О себе" preset="formLabel" />
+          <TextInput
+            value={bio}
+            onChangeText={setBio}
+            placeholder="Коротко о себе"
+            placeholderTextColor={colors.textDim}
+            style={[$input, { minHeight: 80, textAlignVertical: "top" }]}
+            multiline
+            numberOfLines={4}
+          />
+        </View>
+
+        {/* Основная кнопка сохранения */}
+        <TouchableOpacity
+          style={[
+            $button, 
+            (!hasChanges || isSaving) && $buttonDisabled
+          ]}
+          disabled={!hasChanges || isSaving}
+          onPress={handleSave}
+          activeOpacity={0.8}
+        >
+          {isSaving ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text text="Сохранить" style={$buttonText} />
+          )}
+        </TouchableOpacity>
+
+        {/* Кнопка отмены */}
+        <TouchableOpacity
+          style={[$button, $cancelButton]}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
+        >
+          <Text text="Отмена" style={$cancelButtonText} />
+        </TouchableOpacity>
+      </View>
+    </Screen>
+  )
+})
+
+const $container: ViewStyle = { 
+  padding: spacing.lg, 
+  gap: spacing.md,
+  flex: 1 
+}
+
+const $hint: TextStyle = { 
+  color: colors.textDim,
+  textAlign: "center",
+  marginBottom: spacing.md,
+}
+
+const $form: ViewStyle = { 
+  marginTop: spacing.lg, 
+  gap: spacing.lg 
+}
+
+const $field: ViewStyle = { 
+  gap: spacing.xs 
+}
+
+const $input: TextStyle = {
+  borderWidth: 1,
+  borderColor: colors.palette.neutral300,
+  borderRadius: spacing.sm,
   paddingHorizontal: spacing.md,
-  gap: spacing.xl,
-  paddingBottom: 70,
-}
-
-const $headerContainer: ViewStyle = {
-  flexDirection: "row",
-  alignItems: "center",
-  gap: spacing.md,
-}
-
-const $generalContainer: ViewStyle = {
-  gap: spacing.md,
-}
-
-const $generalLinksContainer: ViewStyle = {
+  paddingVertical: spacing.sm,
+  color: colors.text,
   backgroundColor: colors.palette.neutral100,
-  borderRadius: spacing.xs,
-  padding: spacing.md,
-  gap: spacing.lg,
 }
 
-const $btn: ViewStyle = {
+const $button: ViewStyle = {
   backgroundColor: colors.palette.primary600,
-  borderWidth: 0,
-  borderRadius: spacing.xs,
+  borderRadius: spacing.sm,
+  paddingVertical: spacing.md,
+  alignItems: "center",
+  marginTop: spacing.md,
+}
+
+const $cancelButton: ViewStyle = {
+  backgroundColor: "transparent",
+  borderWidth: 1,
+  borderColor: colors.palette.neutral400,
+}
+
+const $buttonDisabled: ViewStyle = { 
+  backgroundColor: colors.palette.neutral400 
+}
+
+const $buttonText: TextStyle = { 
+  color: "#fff", 
+  fontWeight: "600" 
+}
+
+const $cancelButtonText: TextStyle = { 
+  color: colors.palette.neutral600, 
+  fontWeight: "600" 
+}
+
+const $backButton: ViewStyle = {
+  paddingHorizontal: spacing.md,
+  paddingVertical: spacing.sm,
 }

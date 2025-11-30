@@ -1,126 +1,86 @@
 import { observer } from "mobx-react-lite"
-import React, { FC } from "react"
-import { View, ViewStyle } from "react-native"
+import React from "react"
+import { View, ViewStyle, TouchableOpacity, TextStyle } from "react-native"
+import { useNavigation } from "@react-navigation/native"
+import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 
-import { Text, Screen, Icon, TextField, Button } from "app/components"
-
-import { Link } from "app/screens/settings"
+import { Text, Screen, TextField, Button } from "app/components"
 import { colors, spacing } from "app/theme"
-import { SettingsScreenProps } from "app/navigators/types"
+import { rootStore } from "app/models"
+import { RootStackParamList } from "app/navigators/AppNavigator"
 
-export const PersonalInfosScreen: FC<SettingsScreenProps<"PersonalInfos">> = observer(
-  function PersonalInfosScreen({ navigation }) {
-    return (
-      <Screen preset="scroll" safeAreaEdges={["top", "bottom"]} contentContainerStyle={$container}>
-        <View style={$headerContainer}>
-          <View style={$headerBackContainer}>
-            <Icon icon="back" color={colors.text} onPress={() => navigation.goBack()} />
-            <Text text="Personal Infos" preset="heading" size="lg" />
-          </View>
-          <Icon icon="pencil" size={16} onPress={() => navigation.navigate("EditPersonalInfos")} />
+type Navigation = NativeStackNavigationProp<RootStackParamList, "PersonalInfos">
+
+export const PersonalInfosScreen = observer(function PersonalInfosScreen() {
+  const navigation = useNavigation<Navigation>()
+  const user = rootStore.authStore?.user
+
+  return (
+    <Screen preset="scroll" safeAreaEdges={["top", "bottom"]} contentContainerStyle={$container}>
+      {/* Заголовок */}
+      <View style={$headerContainer}>
+        <View style={$headerBackContainer}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={$backButton}>
+            <Text text="← Назад" style={$backButtonText} />
+          </TouchableOpacity>
+          <Text text="Личная информация" preset="heading" size="lg" />
         </View>
+        <TouchableOpacity onPress={() => navigation.navigate("EditPersonalInfos")} style={$editButton}>
+          <Text text="✏️" style={$editButtonText} />
+        </TouchableOpacity>
+      </View>
 
-        <View style={$generalContainer}>
-          <Text text="General" preset="formLabel" />
-          <View style={$generalLinksContainer}>
-            <TextField
-              label="FullName"
-              value="EL Hadji Malick Seck"
-              readOnly
-              inputWrapperStyle={{
-                borderRadius: spacing.xs,
-                backgroundColor: colors.palette.neutral100,
-              }}
-            />
-            <TextField
-              label="Email"
-              value="elhadjimalick@gmail.com"
-              readOnly
-              inputWrapperStyle={{
-                borderRadius: spacing.xs,
-                backgroundColor: colors.palette.neutral100,
-              }}
-            />
-            <TextField
-              label="Bio"
-              value="Full Stack Developer | Open Source Enthusiast"
-              readOnly
-              multiline
-              inputWrapperStyle={{
-                borderRadius: spacing.xs,
-                backgroundColor: colors.palette.neutral100,
-              }}
-            />
-          </View>
+      {/* Основная информация */}
+      <View style={$generalContainer}>
+        <Text text="Основная информация" preset="formLabel" />
+        <View style={$generalLinksContainer}>
+          <TextField
+            label="Полное имя"
+            value={user?.name ?? ""}
+            readOnly
+            inputWrapperStyle={$inputWrapper}
+          />
+          <TextField
+            label="Email"
+            value={user?.email ?? ""}
+            readOnly
+            inputWrapperStyle={$inputWrapper}
+          />
+          <TextField
+            label="О себе"
+            value={user?.bio ?? ""}
+            readOnly
+            multiline
+            inputWrapperStyle={$inputWrapper}
+          />
         </View>
+      </View>
 
-        <View style={$generalContainer}>
-          <Text text="Password" preset="formLabel" />
-          <View style={$link}>
-            <Link
-              icon="lockFilled"
-              title="Password"
-              handleClick={() => navigation.navigate("EditPassword")}
-              length={1}
-              index={0}
-            />
-          </View>
+      {/* Пароль */}
+      <View style={$generalContainer}>
+        <Text text="Пароль" preset="formLabel" />
+        <View style={$link}>
+          <TouchableOpacity 
+            style={$passwordLink}
+            onPress={() => navigation.navigate("EditPassword")}
+          >
+            <Text text="🔒 Пароль" style={$linkText} />
+          </TouchableOpacity>
         </View>
+      </View>
 
-        <View style={$generalContainer}>
-          <Text text="Social Links" preset="formLabel" />
-          <View style={$generalLinksContainer}>
-            <TextField
-              label="Twitter/X"
-              readOnly
-              value="@takanome_dev"
-              inputWrapperStyle={{
-                borderRadius: spacing.xs,
-                backgroundColor: colors.palette.neutral100,
-              }}
-            />
-            <TextField
-              label="Linkedin"
-              value="@takanome-dev"
-              readOnly
-              inputWrapperStyle={{
-                borderRadius: spacing.xs,
-                backgroundColor: colors.palette.neutral100,
-              }}
-            />
-            <TextField
-              label="Facebook"
-              readOnly
-              value="@takanome-dev"
-              inputWrapperStyle={{
-                borderRadius: spacing.xs,
-                backgroundColor: colors.palette.neutral100,
-              }}
-            />
-            <TextField
-              label="Instagram"
-              readOnly
-              value="@takanome-dev"
-              inputWrapperStyle={{
-                borderRadius: spacing.xs,
-                backgroundColor: colors.palette.neutral100,
-              }}
-            />
-          </View>
-        </View>
+      {/* Кнопка редактирования */}
+      <Button
+        style={$btn}
+        textStyle={{ color: colors.palette.neutral100 }}
+        onPress={() => navigation.navigate("EditPersonalInfos")}
+        text="Редактировать профиль"
+      />
+    </Screen>
+  )
+})
 
-        <Button
-          style={$btn}
-          textStyle={{ color: colors.palette.neutral100 }}
-          onPress={() => navigation.navigate("EditPersonalInfos")}
-        >
-          Edit profile
-        </Button>
-      </Screen>
-    )
-  },
-)
-
+/* ===== Стили ===== */
 const $container: ViewStyle = {
   paddingHorizontal: spacing.md,
   gap: spacing.xl,
@@ -139,6 +99,23 @@ const $headerBackContainer: ViewStyle = {
   gap: spacing.md,
 }
 
+const $backButton: ViewStyle = {
+  padding: spacing.sm,
+}
+
+const $backButtonText: TextStyle = {
+  color: colors.palette.primary500,
+  fontSize: 16,
+}
+
+const $editButton: ViewStyle = {
+  padding: spacing.sm,
+}
+
+const $editButtonText: TextStyle = {
+  fontSize: 16,
+}
+
 const $generalContainer: ViewStyle = {
   gap: spacing.md,
 }
@@ -150,11 +127,25 @@ const $generalLinksContainer: ViewStyle = {
   gap: spacing.lg,
 }
 
+const $inputWrapper: ViewStyle = {
+  borderRadius: spacing.xs,
+  backgroundColor: colors.palette.neutral100,
+}
+
 const $link: ViewStyle = {
   backgroundColor: colors.palette.neutral100,
   borderRadius: spacing.xs,
   paddingHorizontal: spacing.md,
   paddingVertical: spacing.xs,
+}
+
+const $passwordLink: ViewStyle = {
+  padding: spacing.md,
+}
+
+const $linkText: TextStyle = {
+  color: colors.text,
+  fontSize: 16,
 }
 
 const $btn: ViewStyle = {

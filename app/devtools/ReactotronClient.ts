@@ -1,8 +1,12 @@
-/**
- * This file is loaded in React Native and exports the RN version
- * of Reactotron's client.
- *
- * Web is loaded from ReactotronClient.web.ts.
- */
-import Reactotron from "reactotron-react-native"
-export { Reactotron }
+// Temporarily disabled Reactotron for Expo SDK 54 compatibility
+export const Reactotron = {
+  configure: () => ({
+    use: () => this,
+    useReactNative: () => this,
+    setAsyncStorageHandler: () => this,
+    onCustomCommand: () => this,
+    connect: () => this,
+    clear: () => {},
+    log: () => {},
+  }),
+}

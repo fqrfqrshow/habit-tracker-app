@@ -1,79 +1,87 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
 /**
- * Loads a string from storage.
+ * Загружает строку из хранилища.
  *
- * @param key The key to fetch.
+ * @param key Ключ для получения.
  */
 export async function loadString(key: string): Promise<string | null> {
   try {
     return await AsyncStorage.getItem(key)
-  } catch {
-    // not sure why this would fail... even reading the RN docs I'm unclear
+  } catch (error) {
+    console.error("Storage loadString error:", error)
     return null
   }
 }
 
 /**
- * Saves a string to storage.
+ * Сохраняет строку в хранилище.
  *
- * @param key The key to fetch.
- * @param value The value to store.
+ * @param key Ключ для сохранения.
+ * @param value Значение для сохранения.
  */
-export async function saveString(key: string, value: string): Promise<boolean> {
+export async function saveString(key: string, value: string): Promise<void> {
   try {
     await AsyncStorage.setItem(key, value)
-    return true
-  } catch {
-    return false
+  } catch (error) {
+    console.error("Storage saveString error:", error)
   }
 }
 
 /**
- * Loads something from storage and runs it thru JSON.parse.
+ * Загружает объект из хранилища и парсит его через JSON.parse.
  *
- * @param key The key to fetch.
+ * @param key Ключ для получения.
  */
-export async function load(key: string): Promise<unknown | null> {
+export async function load<T>(key: string): Promise<T | null> {
   try {
-    const almostThere = await AsyncStorage.getItem(key)
-    return JSON.parse(almostThere ?? "")
-  } catch {
+    const value = await AsyncStorage.getItem(key)
+    if (!value) return null
+    return JSON.parse(value) as T
+  } catch (error) {
+    console.error("Storage load error:", error)
     return null
   }
 }
 
 /**
- * Saves an object to storage.
+ * Сохраняет объект в хранилище.
  *
- * @param key The key to fetch.
- * @param value The value to store.
+ * @param key Ключ для сохранения.
+ * @param value Значение для сохранения.
  */
-export async function save(key: string, value: unknown): Promise<boolean> {
+export async function save(key: string, value: unknown): Promise<void> {
   try {
-    await AsyncStorage.setItem(key, JSON.stringify(value))
-    return true
-  } catch {
-    return false
+    if (value === null || value === undefined) {
+      await AsyncStorage.removeItem(key)
+    } else {
+      await AsyncStorage.setItem(key, JSON.stringify(value))
+    }
+  } catch (error) {
+    console.error("Storage save error:", error)
   }
 }
 
 /**
- * Removes something from storage.
+ * Удаляет элемент из хранилища.
  *
- * @param key The key to kill.
+ * @param key Ключ для удаления.
  */
 export async function remove(key: string): Promise<void> {
   try {
     await AsyncStorage.removeItem(key)
-  } catch {}
+  } catch (error) {
+    console.error("Storage remove error:", error)
+  }
 }
 
 /**
- * Burn it all to the ground.
+ * Полностью очищает хранилище.
  */
 export async function clear(): Promise<void> {
   try {
     await AsyncStorage.clear()
-  } catch {}
+  } catch (error) {
+    console.error("Storage clear error:", error)
+  }
 }
